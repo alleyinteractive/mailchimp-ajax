@@ -1,0 +1,21 @@
+<form class="form-inline flex-container--wrap mailchimp-ajax">
+	<div class="flex-container fields">
+		<input class="form-control" name="subscribe-firstname" type="text" placeholder="%s" />
+		<input class="form-control" name="subscribe-lastname" type="text" placeholder="%s" />
+	</div>
+	<div class="flex-container fields">
+		<input class="form-control" name="subscribe-email" type="email" placeholder="%s" />
+		<input type="hidden" name="subscribe-nonce" value="%s" />
+		<input type="submit" class="btn btn-primary" value="%s &gt;&gt;" />
+	</div>
+	
+	<div class="response error" style="display:none">
+		<ul>
+		</ul>
+		<a href="#">%s</a>
+	</div>
+
+	<div class="response success" style="display:none">
+		<p>%s</p>
+	</div>
+</form>
