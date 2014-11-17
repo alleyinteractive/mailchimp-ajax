@@ -9,7 +9,7 @@ jQuery('form.mailchimp-ajax').submit(function(e){
 		submission[ field.name ] = field.value;
 	});
 
-	ajaxurl = '/wp-admin/admin-ajax.php'
+	ajaxurl = '/wp-admin/admin-ajax.php';
 
 	var context = this;
 
