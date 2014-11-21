@@ -9,7 +9,6 @@ class MailChimp_Ajax {
 
 	function __construct(){
 		register_activation_hook( __FILE__, array( $this, 'activate_plugin' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'deactivate_plugin' ) );
 		add_action( 'wp_ajax_mailchimp_ajax_subscribe', array( $this, 'subscribe' ) );
 		add_action( 'wp_ajax_nopriv_mailchimp_ajax_subscribe', array( $this, 'subscribe' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_script' ) );
@@ -145,10 +144,6 @@ class MailChimp_Ajax {
 			'success' => true
 		) ) );
 
-	}
-
-	function deactivate_plugin(){
-		delete_option( 'mailchimp_ajax_settings' );
 	}
 
 	function activate_plugin(){
