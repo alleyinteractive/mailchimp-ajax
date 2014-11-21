@@ -6,13 +6,16 @@ Author: Josh Kadis
 Version: 0.0.1
 */
 class MailChimp_Ajax {
+	private $_is_debug = false;
+	private $_internal_error = '';
 
 	function __construct(){
 		register_activation_hook( __FILE__, array( $this, 'activate_plugin' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'deactivate_plugin' ) );
 		add_action( 'wp_ajax_mailchimp_ajax_subscribe', array( $this, 'subscribe' ) );
 		add_action( 'wp_ajax_nopriv_mailchimp_ajax_subscribe', array( $this, 'subscribe' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_script' ) );
+		$this->_is_debug = defined( 'WP_DEBUG' ) && WP_DEBUG;
+		$this->_internal_error = __( 'Internal error. Please try again later.', 'mailchimp-ajax' );
 	}
 
 	public static function render_form(){
@@ -41,9 +44,10 @@ class MailChimp_Ajax {
 
 		// check nonce
 		if ( ! wp_verify_nonce( $_POST['subscribe-nonce'], 'mailchimp_ajax_subscribe' ) ){
+			$msg = $this->_is_debug ? __( 'Nonce was not verified', 'mailchimp-ajax' ) : $this->_internal_error;
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( 'Nonce was not verified.' )
+				'errors' => array( $msg )
 			) ) );
 		}
 
@@ -54,23 +58,23 @@ class MailChimp_Ajax {
 
 			case empty( $_POST['subscribe-firstname'] ):
 				$success = false;
-				$errors[] = 'Missing First Name field';
+				$errors[] = __( 'Missing First Name field', 'mailchimp-ajax' );
 				// don't break here because we want to continue checking other fields
 
 
 			case empty( $_POST['subscribe-lastname'] ):
 				$success = false;
-				$errors[] = 'Missing Last Name field';
+				$errors[] = __( 'Missing Last Name field', 'mailchimp-ajax' );
 				// don't break here because we want to continue checking other fields
 
 			case empty( $_POST['subscribe-email'] ):
 				$success = false;
-				$errors[] = 'Missing Email field';
+				$errors[] = __( 'Missing Email field', 'mailchimp-ajax' );
 				break;
 				
 			case ! filter_var( $_POST['subscribe-email'], FILTER_VALIDATE_EMAIL ):
 				$success = false;
-				$errors[] = 'Invalid Email address';
+				$errors[] = __( 'Invalid Email address', 'mailchimp-ajax' );
 				break;				
 		}
 
@@ -85,16 +89,15 @@ class MailChimp_Ajax {
 			) ) );
 		}
 
-		// get API key and list ID from wp_options
-		$settings = get_option( 'mailchimp_ajax_settings' );
-		if ( empty( $settings['api_key'] ) ){
+		// get API key and list ID from constants
+		if ( ! defined( 'MAILCHIMP_AJAX_API_KEY' ) ){
 			$success = false;
-			$errors[] = '<code>mailchimp_ajax_settings</code> missing API key';
+			$errors[] = $this->_is_debug ? __( '<code>MAILCHIMP_AJAX_API_KEY</code> is not defined', 'mailchimp-ajax' ) : $this->_internal_error;
 		}
 
-		if ( empty( $settings['list_id'] ) ){
+		if ( ! defined( 'MAILCHIMP_AJAX_LIST_ID' ) ){
 			$success = false;
-			$errors[] = '<code>mailchimp_ajax_settings</code> missing lsit ID';
+			$errors[] = $this->_is_debug ? __( '<code>MAILCHIMP_AJAX_LIST_ID</code> is not defined', 'mailchimp-ajax' ) : $this->_internal_error;
 		}
 		if ( ! $success ){
 			die( json_encode( array(
@@ -103,9 +106,15 @@ class MailChimp_Ajax {
 			) ) );
 		}
 
+		$settings = array(
+			'api_key' => MAILCHIMP_AJAX_API_KEY,
+			'list_id' => MAILCHIMP_AJAX_LIST_ID
+		);
+
 		// init MailChimp API
 		$mc_api_path = __DIR__ . '/mailchimp-api/src/Mailchimp.php';
 		if ( ! file_exists( $mc_api_path ) ){
+			$msg = $this->_is_debug ? __( 'Missing MailChimp API library', 'mailchimp-ajax' ) : $this->_internal_error;
 			die( json_encode( array(
 				'success' => false,
 				'errors' => array( 'Missing MailChimp API library' )
@@ -147,29 +156,19 @@ class MailChimp_Ajax {
 
 	}
 
-	function deactivate_plugin(){
-		delete_option( 'mailchimp_ajax_settings' );
-	}
-
 	function activate_plugin(){
 		if (! defined( 'MAILCHIMP_AJAX_API_KEY' ) || ! defined( 'MAILCHIMP_AJAX_LIST_ID' ) ){
-			$option_added = false;
-		} else {
-			$settings = array(
-				'api_key' => MAILCHIMP_AJAX_API_KEY,
-				'list_id' => MAILCHIMP_AJAX_LIST_ID
-			);
-			$option_added = add_option( 'mailchimp_ajax_settings', $settings, '', 'no' );
-		}
-	
-		if ( ! $option_added ){
 			deactivate_plugins( 'mailchimp-ajax' );
 			wp_die( $this->notice_activation_failed() );
 		}
 	}
 
 	function notice_activation_failed(){
-		return 'Failed to add MailChimp AJAX settings. <code>MAILCHIMP_AJAX_API_KEY</code> and <code>MAILCHIMP_AJAX_LIST_ID</code> must be defined in theme, and <code>mailchimp_ajax_settings</code> must be available in <code>wp_options</code>.';
+		return sprintf(
+					__('Failed to activate MailChimp AJAX. %s and %s must be defined.', 'mailchimp-ajax' ),
+					'<code>MAILCHIMP_AJAX_LIST_ID</code>',
+					'<code>MAILCHIMP_AJAX_LIST_ID</code>'
+				);
 	}
 
 }
