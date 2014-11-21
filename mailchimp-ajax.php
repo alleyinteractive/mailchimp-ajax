@@ -84,16 +84,15 @@ class MailChimp_Ajax {
 			) ) );
 		}
 
-		// get API key and list ID from wp_options
-		$settings = get_option( 'mailchimp_ajax_settings' );
-		if ( empty( $settings['api_key'] ) ){
+		// get API key and list ID from constants
+		if ( ! defined( 'MAILCHIMP_AJAX_API_KEY' ) ){
 			$success = false;
-			$errors[] = '<code>mailchimp_ajax_settings</code> missing API key';
+			$errors[] = '<code>MAILCHIMP_AJAX_API_KEY</code> is not defined';
 		}
 
-		if ( empty( $settings['list_id'] ) ){
+		if ( ! defined( 'MAILCHIMP_AJAX_LIST_ID' ) ){
 			$success = false;
-			$errors[] = '<code>mailchimp_ajax_settings</code> missing lsit ID';
+			$errors[] = '<code>MAILCHIMP_AJAX_LIST_ID</code> is not defined';
 		}
 		if ( ! $success ){
 			die( json_encode( array(
@@ -101,6 +100,11 @@ class MailChimp_Ajax {
 				'errors' => $errors
 			) ) );
 		}
+
+		$settings = array(
+			'api_key' => MAILCHIMP_AJAX_API_KEY,
+			'list_id' => MAILCHIMP_AJAX_LIST_ID
+		);
 
 		// init MailChimp API
 		$mc_api_path = __DIR__ . '/mailchimp-api/src/Mailchimp.php';
@@ -148,23 +152,17 @@ class MailChimp_Ajax {
 
 	function activate_plugin(){
 		if (! defined( 'MAILCHIMP_AJAX_API_KEY' ) || ! defined( 'MAILCHIMP_AJAX_LIST_ID' ) ){
-			$option_added = false;
-		} else {
-			$settings = array(
-				'api_key' => MAILCHIMP_AJAX_API_KEY,
-				'list_id' => MAILCHIMP_AJAX_LIST_ID
-			);
-			$option_added = add_option( 'mailchimp_ajax_settings', $settings, '', 'no' );
-		}
-	
-		if ( ! $option_added ){
 			deactivate_plugins( 'mailchimp-ajax' );
 			wp_die( $this->notice_activation_failed() );
 		}
 	}
 
 	function notice_activation_failed(){
-		return 'Failed to add MailChimp AJAX settings. <code>MAILCHIMP_AJAX_API_KEY</code> and <code>MAILCHIMP_AJAX_LIST_ID</code> must be defined in theme, and <code>mailchimp_ajax_settings</code> must be available in <code>wp_options</code>.';
+		return sprintf(
+					__('Failed to activate MailChimp AJAX. %s and %s must be defined.', 'mailchimp-ajax' ),
+					'<code>MAILCHIMP_AJAX_LIST_ID</code>',
+					'<code>MAILCHIMP_AJAX_LIST_ID</code>'
+				);
 	}
 
 }
