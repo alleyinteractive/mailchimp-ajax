@@ -18,7 +18,6 @@ jQuery('form.mailchimp-ajax').submit(function(e){
 
 	// make AJAX call
 	jQuery.post( ajaxurl, submission, function( data ){
-		console.log(data);
 		if ( data.success ){
 			// it worked! hide form fields and show success message
 			jQuery('.fields', context).hide();

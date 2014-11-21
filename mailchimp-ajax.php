@@ -43,8 +43,7 @@ class MailChimp_Ajax {
 		if ( ! wp_verify_nonce( $_POST['subscribe-nonce'], 'mailchimp_ajax_subscribe' ) ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( 'Nonce was not verified.' ),
-				'listId' => MAILCHIMP_AJAX_LIST_ID
+				'errors' => array( 'Nonce was not verified.' )
 			) ) );
 		}
 
@@ -82,8 +81,7 @@ class MailChimp_Ajax {
 		if ( ! $success ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => $errors,
-				'listId' => MAILCHIMP_AJAX_LIST_ID
+				'errors' => $errors
 			) ) );
 		}
 
@@ -101,8 +99,7 @@ class MailChimp_Ajax {
 		if ( ! $success ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => $errors,
-				'listId' => MAILCHIMP_AJAX_LIST_ID
+				'errors' => $errors
 			) ) );
 		}
 
@@ -111,8 +108,7 @@ class MailChimp_Ajax {
 		if ( ! file_exists( $mc_api_path ) ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( 'Missing MailChimp API library' ),
-				'listId' => MAILCHIMP_AJAX_LIST_ID
+				'errors' => array( 'Missing MailChimp API library' )
 			) ) );
 		}
 		require_once( $mc_api_path );
@@ -121,8 +117,7 @@ class MailChimp_Ajax {
 		} catch( Mailchimp_Error $e ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( $e->getMessage() ),
-				'listId' => MAILCHIMP_AJAX_LIST_ID
+				'errors' => array( $e->getMessage() )
 			) ) );
 		}
 
@@ -141,15 +136,13 @@ class MailChimp_Ajax {
 		} catch( Mailchimp_Error $e ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( $e->getMessage() ),
-				'listId' => MAILCHIMP_AJAX_LIST_ID
+				'errors' => array( $e->getMessage() )
 			) ) );
 		}
 
 		// return response
 		die( json_encode( array(
-			'success' => true,
-			'listId' => MAILCHIMP_AJAX_LIST_ID
+			'success' => true
 		) ) );
 
 	}
