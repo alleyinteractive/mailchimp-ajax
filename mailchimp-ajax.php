@@ -8,6 +8,28 @@ Version: 0.0.1
 class MailChimp_Ajax {
 	private $_is_debug = false;
 	private $_internal_error = '';
+	public static $allowed_html = array(
+		'form' => array(
+			'class' => true,
+			'id' => true,
+		),
+		'input' => array(
+			'type' => true,
+			'class' => true,
+			'id' => true,
+			'name' => true,
+			'placeholder' => true,
+			'value' => true,
+		),
+		'select' => array(
+			'class' => true,
+			'id' => true,
+			'name' => true,
+		),
+		'option' => array(
+			'value' => true,
+		),
+	);
 
 	function __construct(){
 		register_activation_hook( __FILE__, array( $this, 'activate_plugin' ) );
@@ -19,17 +41,42 @@ class MailChimp_Ajax {
 	}
 
 	public static function render_form(){
-		$form = file_get_contents( __DIR__ . '/subscribe-form.html' );
-		printf(
-			$form,
-			__( 'First name' , 'mailchimp-ajax' ),
-			__( 'Last name' , 'mailchimp-ajax' ),
-			__( 'Email address' , 'mailchimp-ajax' ),
+		$template = file_get_contents( __DIR__ . '/subscribe-form.html' );
+		$html = sprintf(
+			$template,
+			self::_custom_fields_html(),
+			apply_filters( 'mailchimp_ajax_form_id', '' ),
+			apply_filters( 'mailchimp_ajax_email_field', '<input class="email-field" name="subscribe-email" type="email" placeholder="Email Address" />' ),
 			esc_attr( wp_create_nonce( 'mailchimp_ajax_subscribe' ) ),
-			__( 'Subscribe me' , 'mailchimp-ajax' ),
-			__( 'Try again', 'mailchimp-ajax' ),
-			__( 'Success! Check your email for a confirmation link.', 'mailchimp-ajax' )
+			apply_filters( 'mailchimp_ajax_subscribe_button', '<input type="submit" value="Subscribe" />' ),
+			apply_filters( 'mailchimp_ajax_error_msg', __( 'Try again', 'mailchimp-ajax' ) ),
+			apply_filters( 'mailchimp_ajax_success_msg', __( 'Success! Check your email for a confirmation link.', 'mailchimp-ajax' ) )
 		);
+
+		self::_update_allowed_html();
+
+		echo wp_kses( $html, self::$allowed_html );
+	}
+
+	private static function _custom_fields_html(){
+		$fields = apply_filters( 'mailchimp_ajax_custom_fields', array() );
+		if ( empty( $fields ) ){
+			return apply_filters( 'mailchimp_ajax_custom_fields_html', '' );
+		}
+
+		$fields_html = '';
+		// DO STUFF build html string of fields
+
+		return apply_filters( 'mailchimp_ajax_custom_fields_html', $fields_html, $fields );
+	}
+
+	/**
+	 * setup allowed HTML tags array for rendering form
+	 */
+	private static function _update_allowed_html(){
+
+		self::$allowed_html = array_merge( wp_kses_allowed_html( 'post' ), self::$allowed_html );
+
 	}
 
 	function enqueue_script(){
@@ -47,7 +94,7 @@ class MailChimp_Ajax {
 			$msg = $this->_is_debug ? __( 'Nonce was not verified', 'mailchimp-ajax' ) : $this->_internal_error;
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( $msg )
+				'errors' => array( $msg ),
 			) ) );
 		}
 
@@ -61,7 +108,6 @@ class MailChimp_Ajax {
 				$errors[] = __( 'Missing First Name field', 'mailchimp-ajax' );
 				// don't break here because we want to continue checking other fields
 
-
 			case empty( $_POST['subscribe-lastname'] ):
 				$success = false;
 				$errors[] = __( 'Missing Last Name field', 'mailchimp-ajax' );
@@ -71,11 +117,11 @@ class MailChimp_Ajax {
 				$success = false;
 				$errors[] = __( 'Missing Email field', 'mailchimp-ajax' );
 				break;
-				
+
 			case ! filter_var( $_POST['subscribe-email'], FILTER_VALIDATE_EMAIL ):
 				$success = false;
 				$errors[] = __( 'Invalid Email address', 'mailchimp-ajax' );
-				break;				
+				break;
 		}
 
 		$first_name = sanitize_text_field( $_POST['subscribe-firstname'] );
@@ -85,7 +131,7 @@ class MailChimp_Ajax {
 		if ( ! $success ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => $errors
+				'errors' => $errors,
 			) ) );
 		}
 
@@ -102,13 +148,13 @@ class MailChimp_Ajax {
 		if ( ! $success ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => $errors
+				'errors' => $errors,
 			) ) );
 		}
 
 		$settings = array(
 			'api_key' => MAILCHIMP_AJAX_API_KEY,
-			'list_id' => MAILCHIMP_AJAX_LIST_ID
+			'list_id' => MAILCHIMP_AJAX_LIST_ID,
 		);
 
 		// init MailChimp API
@@ -135,11 +181,11 @@ class MailChimp_Ajax {
 			$mc_api->lists->subscribe(
 				$settings['list_id'],
 				array(
-					'email' => $email
+					'email' => $email,
 				),
 				array(
 					'FNAME' => $first_name,
-					'LNAME' => $last_name
+					'LNAME' => $last_name,
 				)
 			);
 		} catch( Mailchimp_Error $e ){
@@ -151,13 +197,13 @@ class MailChimp_Ajax {
 
 		// return response
 		die( json_encode( array(
-			'success' => true
+			'success' => true,
 		) ) );
 
 	}
 
 	function activate_plugin(){
-		if (! defined( 'MAILCHIMP_AJAX_API_KEY' ) || ! defined( 'MAILCHIMP_AJAX_LIST_ID' ) ){
+		if ( ! defined( 'MAILCHIMP_AJAX_API_KEY' ) || ! defined( 'MAILCHIMP_AJAX_LIST_ID' ) ){
 			deactivate_plugins( 'mailchimp-ajax' );
 			wp_die( $this->notice_activation_failed() );
 		}
@@ -165,7 +211,7 @@ class MailChimp_Ajax {
 
 	function notice_activation_failed(){
 		return sprintf(
-					__('Failed to activate MailChimp AJAX. %s and %s must be defined.', 'mailchimp-ajax' ),
+					__( 'Failed to activate MailChimp AJAX. %s and %s must be defined.', 'mailchimp-ajax' ),
 					'<code>MAILCHIMP_AJAX_LIST_ID</code>',
 					'<code>MAILCHIMP_AJAX_LIST_ID</code>'
 				);
