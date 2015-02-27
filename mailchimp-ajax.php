@@ -196,7 +196,7 @@ class MailChimp_Ajax {
 		$merge_vars = array();
 
 		foreach ( $fields as $name => $field ){
-			$sanitizer = is_callable( $field['sanitizer'] ) ? $field['sanitizer'] : 'sanitize_text_field';
+			$sanitizer = isset( $field['sanitizer'] ) && is_callable( $field['sanitizer'] ) ? $field['sanitizer'] : 'sanitize_text_field';
 			$merge_vars[ $field['merge_tag'] ] = call_user_func( $sanitizer, $_POST[ $name ] );
 		}
 
