@@ -8,6 +8,7 @@ A basic plugin handle subscription requests to a MailChimp list and display erro
 1. Activate the plugin
 1. Add the form to your template with `if ( class_exists( 'MailChimp_Ajax' ) ){ MailChimp_Ajax::render_form(); }`
 1. Apply your own CSS to the form fields, response messages, etc
+1. Optional: Add your own callback function in jQuery `jQuery('form.mailchimp-ajax').on( 'mailchimpAjaxCallback', function(data){  console.log(data) });` Once this is included, the included js in mailchimp-api will not render the error messages / success messsages / try again button, you will be required to handle these with the callback function.
 
 ### Limitations
 
