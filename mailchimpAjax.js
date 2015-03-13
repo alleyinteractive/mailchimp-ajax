@@ -26,8 +26,12 @@ jQuery('form.mailchimp-ajax').submit(function(e){
 	    	if ( data.success ){
 				// it worked! hide form fields and show success message
 				jQuery('.fields', context).hide();
+				jQuery('.response.error', context).hide();
 				jQuery('.response.success', context).show();
 			} else {
+				//clear out previous errors
+				jQuery('.response.error ul', context).html("");
+
 				// it failed! insert the errors into the page
 				jQuery.each( data.errors, function( index, error ){
 					jQuery('.response.error ul', context).append( '<li>' + error + '</li>' );
