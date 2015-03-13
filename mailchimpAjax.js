@@ -18,32 +18,27 @@ jQuery('form.mailchimp-ajax').submit(function(e){
 
 	// make AJAX call
 	jQuery.post( ajaxurl, submission, function( data ){
-		if ( data.callback ) {
-			//we have a callback function, lets call that instead with the data response
-			window[data.callback](data);
-		} else {
-			if ( data.success ) {
+		if ( data.success ){
 			// it worked! hide form fields and show success message
-				jQuery('.fields', context).hide();
-				jQuery('.response.success', context).show();
-			} else {
-				// it failed! insert the errors into the page
-				jQuery.each( data.errors, function( index, error ){
-					jQuery('.response.error ul', context).append( '<li>' + error + '</li>' );
-				});
+			jQuery('.fields', context).hide();
+			jQuery('.response.success', context).show();
+		} else {
+			// it failed! insert the errors into the page
+			jQuery.each( data.errors, function( index, error ){
+				jQuery('.response.error ul', context).append( '<li>' + error + '</li>' );
+			});
 
-				// then hide the form fields and show the list of errors
-				jQuery('.fields', context).hide();
-				jQuery('.response.error', context).show();
+			// then hide the form fields and show the list of errors
+			jQuery('.fields', context).hide();
+			jQuery('.response.error', context).show();
 
-				// if you click "Try Again", clear the errors and show the form fields
-				jQuery('.response.error a', context).click(function(e){
-					e.preventDefault();
-					jQuery('.response.error ul li', context).remove();
-					jQuery('.response.error', context).hide();
-					jQuery('.fields', context).show();
-				});
-			}
+			// if you click "Try Again", clear the errors and show the form fields
+			jQuery('.response.error a', context).click(function(e){
+				e.preventDefault();
+				jQuery('.response.error ul li', context).remove();
+				jQuery('.response.error', context).hide();
+				jQuery('.fields', context).show();
+			});
 		}
 	}, 'json');
 

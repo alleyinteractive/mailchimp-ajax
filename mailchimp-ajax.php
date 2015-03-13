@@ -8,7 +8,6 @@ Version: 0.0.1
 class MailChimp_Ajax {
 	private $_is_debug = false;
 	private $_internal_error = '';
-	private $_callback = false;
 	public static $allowed_html = array(
 		'form' => array(
 			'class' => true,
@@ -91,8 +90,6 @@ class MailChimp_Ajax {
 	 */
 	function subscribe(){
 
-		$this->_callback = apply_filters( 'mailchimp_ajax_callback', '' );
-
 		$this->_check_required_fields();
 
 		$email = sanitize_email( $_POST['subscribe-email'] );
@@ -109,8 +106,7 @@ class MailChimp_Ajax {
 			$msg = $this->_is_debug ? __( 'Missing MailChimp API library', 'mailchimp-ajax' ) : $this->_internal_error;
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( 'Missing MailChimp API library' ),
-				'callback' => $this->_callback
+				'errors' => array( 'Missing MailChimp API library' )
 			) ) );
 		}
 		require_once( $mc_api_path );
@@ -119,8 +115,7 @@ class MailChimp_Ajax {
 		} catch( Mailchimp_Error $e ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( $e->getMessage() ),
-				'callback' => $this->_callback
+				'errors' => array( $e->getMessage() )
 			) ) );
 		}
 
@@ -136,15 +131,13 @@ class MailChimp_Ajax {
 		} catch( Mailchimp_Error $e ){
 			die( json_encode( array(
 				'success' => false,
-				'errors' => array( $e->getMessage() ),
-				'callback' => $this->_callback
+				'errors' => array( $e->getMessage() )
 			) ) );
 		}
 
 		// return response
 		die( json_encode( array(
 			'success' => true,
-			'callback' => $this->_callback
 		) ) );
 
 	}
@@ -187,7 +180,6 @@ class MailChimp_Ajax {
 			die( json_encode( array(
 				'success' => false,
 				'errors' => $errors,
-				'callback' => $this->_callback
 			) ) );
 		}
 	}
