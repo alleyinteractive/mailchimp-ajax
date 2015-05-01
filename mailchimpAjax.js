@@ -20,7 +20,7 @@ jQuery('form.mailchimp-ajax').submit(function(e){
 	jQuery.post( ajaxurl, submission, function( data ){
 
 		//if we have a callback function bound to the context, lets call that instead of doing other stuff
-	    if ( jQuery( context ).data('events') !== null && jQuery( context ).data('events').mailchimpAjaxCallback !== 'undefined' ) {
+	    if ( jQuery( context ).data('events') !== null && typeof jQuery( context ).data('events').mailchimpAjaxCallback !== 'undefined' ) {
 	    	jQuery( context ).trigger( 'mailchimpAjaxCallback', data );
 	    } else {
 	    	if ( data.success ){
